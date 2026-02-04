@@ -60,23 +60,34 @@ app.get("/", (req, res) => res.send("OK"));
 
 app.post("/create-checkout-session", async (req, res) => {
   try {
-    // OPTIONAL: accept data from Framer (like server link, username, package, etc.)
-    // const { discordInvite } = req.body;
+    const { productId } = req.body;
+
+    const product = PRODUCTS[productId];
+    if (!product) {
+      return res.status(400).json({ error: "Invalid productId" });
+    }
 
     const session = await stripe.checkout.sessions.create({
       ui_mode: "embedded",
-      mode: "payment", // change to "subscription" if needed
+      mode: product.type, // "payment" OR "subscription"
 
       line_items: [
         {
-          price_data: {
-            currency: "usd",
-            product_data: { name: "Your Product" },
-            unit_amount: 50, // $0.01 = 1 cent
-          },
+          price: product.priceId,
           quantity: 1,
         },
       ],
+
+      return_url:
+        "https://www.megafile.one/return?session_id={CHECKOUT_SESSION_ID}",
+    });
+
+    res.json({ clientSecret: session.client_secret });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 
       // IMPORTANT: this should be a real page on your Framer site
       return_url: "https://YOUR-FRAMER-DOMAIN.com/return?session_id={CHECKOUT_SESSION_ID}",
