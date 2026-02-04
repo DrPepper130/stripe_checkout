@@ -1,19 +1,23 @@
 import express from "express";
 import Stripe from "stripe";
 
+/**
+ * PRODUCT MAP
+ * key = productId sent from Framer
+ * type = "payment" | "subscription"
+ * priceId = Stripe price_...
+ */
 const PRODUCTS = {
-  // ONE-TIME
   mega: {
     type: "payment",
-    priceId: "price_1SOjGG3NjejKZr8W1uYQH6r6", // recommended even for one-time
+    priceId: "price_1SOjGG3NjejKZr8W1uYQH6r6",
   },
 
-    AI: {
+  AI: {
     type: "payment",
-    priceId: "price_1SsULj3NjejKZr8WpnjvOmYs", // recommended even for one-time
+    priceId: "price_1SsULj3NjejKZr8WpnjvOmYs",
   },
 
-  // SUBSCRIPTION
   private: {
     type: "subscription",
     priceId: "price_1SaQzP3NjejKZr8W9dWVevfx",
@@ -23,8 +27,8 @@ const PRODUCTS = {
     type: "subscription",
     priceId: "price_1Sip1B3NjejKZr8WGvIjThRW",
   },
-  
-    premium: {
+
+  premium: {
     type: "subscription",
     priceId: "price_1SoE3w3NjejKZr8WWDbgTLCT",
   },
@@ -33,30 +37,31 @@ const PRODUCTS = {
     type: "subscription",
     priceId: "price_1SoE5U3NjejKZr8WRkhfr7cD",
   },
-}
-
-
+};
 
 const app = express();
 
+/* ---------------- CORS ---------------- */
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*")
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type")
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") {
-    return res.sendStatus(200)
+    return res.sendStatus(200);
   }
-
-  next()
-})
-
+  next();
+});
 
 app.use(express.json());
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-app.get("/", (req, res) => res.send("OK"));
+/* ---------------- ROUTES ---------------- */
+
+app.get("/", (req, res) => {
+  res.send("OK");
+});
 
 app.post("/create-checkout-session", async (req, res) => {
   try {
@@ -69,17 +74,15 @@ app.post("/create-checkout-session", async (req, res) => {
 
     const session = await stripe.checkout.sessions.create({
       ui_mode: "embedded",
-      mode: product.type, // "payment" OR "subscription"
-
+      mode: product.type, // "payment" or "subscription"
       line_items: [
         {
           price: product.priceId,
           quantity: 1,
         },
       ],
-
       return_url:
-        "https://www.megafile.one/return?session_id={CHECKOUT_SESSION_ID}",
+        "https://www.megafile.com/return?session_id={CHECKOUT_SESSION_ID}",
     });
 
     res.json({ clientSecret: session.client_secret });
@@ -88,20 +91,9 @@ app.post("/create-checkout-session", async (req, res) => {
   }
 });
 
+/* ---------------- START SERVER ---------------- */
 
-      // IMPORTANT: this should be a real page on your Framer site
-      return_url: "https://YOUR-FRAMER-DOMAIN.com/return?session_id={CHECKOUT_SESSION_ID}",
-
-      // OPTIONAL:
-      // metadata: { discordInvite },
-    });
-
-    res.json({ clientSecret: session.client_secret });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-// Render uses PORT env var
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Listening on", PORT));
+app.listen(PORT, () => {
+  console.log("Listening on", PORT);
+});
