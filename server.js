@@ -1,6 +1,42 @@
 import express from "express";
 import Stripe from "stripe";
 
+const PRODUCTS = {
+  // ONE-TIME
+  mega: {
+    type: "payment",
+    priceId: "price_1SOjGG3NjejKZr8W1uYQH6r6", // recommended even for one-time
+  },
+
+    AI: {
+    type: "payment",
+    priceId: "price_1SsULj3NjejKZr8WpnjvOmYs", // recommended even for one-time
+  },
+
+  // SUBSCRIPTION
+  private: {
+    type: "subscription",
+    priceId: "price_1SaQzP3NjejKZr8W9dWVevfx",
+  },
+
+  basic: {
+    type: "subscription",
+    priceId: "price_1Sip1B3NjejKZr8WGvIjThRW",
+  },
+  
+    premium: {
+    type: "subscription",
+    priceId: "price_1SoE3w3NjejKZr8WWDbgTLCT",
+  },
+
+  ultimate: {
+    type: "subscription",
+    priceId: "price_1SoE5U3NjejKZr8WRkhfr7cD",
+  },
+}
+
+
+
 const app = express();
 
 app.use((req, res, next) => {
